@@ -1,0 +1,33 @@
+name: Daily Naukri Resume Upload
+
+on:
+  schedule:
+    - cron: '35 2 * * *'   # 8:05 AM IST
+    - cron: '30 10 * * *'  # 4:00 PM IST
+  workflow_dispatch:
+
+jobs:
+  upload-resume:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      - run: mvn clean compile
+
+      - name: Run Resume Upload
+        env:
+          NAUKRI_EMAIL: ${{ secrets.NAUKRI_EMAIL }}
+          NAUKRI_PASS: ${{ secrets.NAUKRI_PASS }}
+          RESUME_PATH: ./resume/Vignesh L Resume.pdf
+        run: mvn exec:java -Dexec.mainClass="org.example.NaukriResumeUploader"
